@@ -1,4 +1,15 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+echo "🔍 Running linters..."
 npx lint-staged
+
+echo "🔨 Running build..."
+npm run build
+
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed! Commit aborted."
+  exit 1
+fi
+
+echo "✅ All checks passed!"
