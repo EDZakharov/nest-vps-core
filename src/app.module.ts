@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { XrayInstanceModule } from './modules/xray-instance/xray-instance.module';
+import { HeartbeatModule } from './modules/heartbeat/heartbeat.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { HealthModule } from './health/health.module';
       envFilePath: '.env',
     }),
     HealthModule,
+    XrayInstanceModule,
+    HeartbeatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
