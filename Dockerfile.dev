@@ -11,8 +11,7 @@ RUN apk add --no-cache git curl openssl
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
-COPY package-lock.json ./
+COPY package.json package-lock.json ./
 
 # Install dependencies
 RUN npm ci
