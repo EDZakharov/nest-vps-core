@@ -13,8 +13,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (skip scripts to avoid husky errors)
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY . .
