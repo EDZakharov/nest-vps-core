@@ -98,13 +98,13 @@ export class XrayInstanceService {
       const { exec } = await import('child_process');
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
-      
+
       // Запускаем скрипт через nsenter в namespace хоста
       const result = await execAsync(
         'docker run --rm --privileged --pid=host -v /opt:/opt alpine ' +
-        'nsenter -t 1 -m -u -n -i /bin/sh /opt/vpn-core-reload.sh'
+        'nsenter -t 1 -m -u -n -i /bin/sh /opt/nest-vps-core/reload-xray.sh'
       );
-      
+
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
       return { success: true };
     } catch (error: any) {
