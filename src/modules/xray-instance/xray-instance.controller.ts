@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
 
 import { AddUserDto } from './dto/add-user.dto';
 import { XrayInstanceService } from './xray-instance.service';
@@ -9,7 +9,7 @@ export class XrayInstanceController {
 
   @Post()
   async addUser(@Body() dto: AddUserDto) {
-    return this.xrayInstanceService.addUser(dto.email, dto.uuid);
+    return this.xrayInstanceService.addUser(dto.userId, dto.uuid);
   }
 
   @Get()
@@ -17,14 +17,14 @@ export class XrayInstanceController {
     return this.xrayInstanceService.getAllUsers();
   }
 
-  @Get(':email/link')
-  async generateLink(@Param('email') email: string) {
-    return this.xrayInstanceService.generateLink(email);
+  @Get(':userId/link')
+  async generateLink(@Param('userId', ParseIntPipe) userId: number) {
+    return this.xrayInstanceService.generateLink(userId);
   }
 
-  @Delete(':email')
-  async removeUser(@Param('email') email: string) {
-    return this.xrayInstanceService.removeUser(email);
+  @Delete(':userId')
+  async removeUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.xrayInstanceService.removeUser(userId);
   }
 
   @Get('stats/traffic')

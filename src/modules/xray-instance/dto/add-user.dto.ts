@@ -1,9 +1,9 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString } from 'class-validator';
 
 export class AddUserDto {
-  @IsEmail()
+  @IsInt()
   @IsNotEmpty()
-  email!: string;
+  userId!: number;
 
   @IsString()
   @IsNotEmpty()
@@ -11,15 +11,15 @@ export class AddUserDto {
 }
 
 export class GenerateLinkDto {
-  @IsEmail()
+  @IsInt()
   @IsNotEmpty()
-  email!: string;
+  userId!: number;
 
   @IsString()
   @IsNotEmpty()
   domain!: string;
 
-  @IsString()
+  @IsInt()
   @IsNotEmpty()
   port!: number;
 }

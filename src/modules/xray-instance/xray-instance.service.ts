@@ -19,50 +19,50 @@ export class XrayInstanceService {
   /**
    * Добавить пользователя
    */
-  async addUser(email: string, uuid: string) {
+  async addUser(userId: number, uuid: string) {
     // 1. Добавляем в конфиг
-    await this.xrayConfig.addUser(email, uuid);
+    await this.xrayConfig.addUser(userId.toString(), uuid);
 
     // 2. Перезапускаем Xray
     await this.restartXray();
 
-    this.logger.log(`User ${email} added and Xray restarted`);
+    this.logger.log(`User ${userId} added and Xray restarted`);
 
-    return { success: true, email, uuid };
+    return { success: true, userId, uuid };
   }
 
   /**
    * Удалить пользователя
    */
-  async removeUser(email: string) {
+  async removeUser(userId: number) {
     // 1. Удаляем из конфига
-    await this.xrayConfig.removeUser(email);
+    await this.xrayConfig.removeUser(userId.toString());
 
     // 2. Перезапускаем Xray
     await this.restartXray();
 
-    this.logger.log(`User ${email} removed and Xray restarted`);
+    this.logger.log(`User ${userId} removed and Xray restarted`);
 
-    return { success: true, email };
+    return { success: true, userId };
   }
 
   /**
    * Сгенерировать VLESS ссылку
    */
-  async generateLink(email: string): Promise<{ link: string }> {
-    const uuid = await this.xrayConfig.getUserUuid(email);
+  async generateLink(userId: number): Promise<{ link: string }> {
+    const uuid = await this.xrayConfig.getUserUuid(userId.toString());
 
     if (!uuid) {
-      throw new NotFoundException(`User ${email} not found`);
+      throw new NotFoundException(`User ${userId} not found`);
     }
 
     const domain = this.configService.get('DOMAIN') || 'localhost';
     const port = this.configService.get('XRAY_PORT') || 443;
 
     // Генерируем VLESS ссылку
-    const link = `vless://${uuid}@${domain}:${port}?encryption=none&flow=xtls-rprx-vision&security=tls&sni=${domain}&fp=chrome&alpn=http/1.1&type=tcp# ${email}`;
+    const link = `vless://${uuid}@${domain}:${port}?encryption=none&flow=xtls-rprx-vision&security=tls&sni=${domain}&fp=chrome&alpn=http/1.1&type=tcp#user-${userId}`;
 
-    this.logger.log(`Generated link for ${email}`);
+    this.logger.log(`Generated link for user ${userId}`);
 
     return { link };
   }
@@ -73,7 +73,7 @@ export class XrayInstanceService {
   async getAllUsers() {
     const users = await this.xrayConfig.getAllUsers();
     return users.map((user: any) => ({
-      email: user.email,
+      userId: user.email,
       uuid: user.id,
       flow: user.flow,
     }));
