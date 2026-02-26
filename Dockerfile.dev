@@ -4,8 +4,8 @@
 
 FROM node:20-alpine
 
-# Install dependencies
-RUN apk add --no-cache git curl openssl
+# Install dependencies (including docker CLI for host operations)
+RUN apk add --no-cache git curl openssl docker
 
 # Set working directory
 WORKDIR /app
