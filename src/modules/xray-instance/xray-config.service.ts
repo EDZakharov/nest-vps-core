@@ -8,7 +8,8 @@ export class XrayConfigService {
   private readonly configPath: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.configPath = this.configService.get('XRAY_CONFIG_PATH') || '/etc/xray/config.json';
+    this.configPath = this.configService.get('XRAY_CONFIG_PATH') || '/usr/local/etc/xray/config.json';
+    new Logger(XrayConfigService.name).log(`Xray config path: ${this.configPath}`);
   }
 
   /**
