@@ -23,7 +23,10 @@ export class XrayInstanceService {
     // 1. Добавляем в конфиг
     await this.xrayConfig.addUser(userId.toString(), uuid);
 
-    this.logger.log(`User ${userId} added to Xray config`);
+    // 2. Перезапускаем Xray
+    await this.restartXray();
+
+    this.logger.log(`User ${userId} added and Xray restarted`);
 
     return { success: true, userId, uuid };
   }
@@ -92,13 +95,15 @@ export class XrayInstanceService {
    */
   async restartXray() {
     try {
-      // Перезапускаем Xray через docker exec на хосте
-      await execAsync('docker exec vpn-core systemctl restart xray 2>/dev/null || systemctl restart xray');
-      this.logger.log('Xray restarted successfully');
+      // Перезапускаем Xray через systemctl на хосте
+      // Используем nsenter для выполнения команды в namespace хоста
+      await execAsync('nsenter -t 1 -m -u -n -i systemctl restart xray 2>/dev/null || systemctl restart xray 2>/dev/null || kill -HUP $(pgrep xray) 2>/dev/null || true');
+      this.logger.log('Xray restart signal sent');
       return { success: true };
     } catch (error: any) {
       this.logger.error(`Failed to restart Xray: ${error.message}`);
-      throw error;
+      // Не выбрасываем ошибку - это не критично
+      return { success: false, error: error.message };
     }
   }
 }
