@@ -1,0 +1,256 @@
+{
+  "info": {
+    "name": "VPN Core Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API коллекция для VPN Core Service (User VPS). Управление Xray инстансами."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4300/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Проверка работоспособности API"
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness Probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Проверка доступности сервиса"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "App",
+      "item": [
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Корневой endpoint (проверка доступности)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Xray Instances",
+      "item": [
+        {
+          "name": "Create Instance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"domain\": \"turbohostapp.lol\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances"]
+            },
+            "description": "Создать новый Xray инстанс для пользователя"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Instances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances"]
+            },
+            "description": "Получить список всех инстансов"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Instance by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances/user@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances", "user@example.com"]
+            },
+            "description": "Получить информацию об инстансе по email"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Instance by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances/xray-user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances", "xray-user-123"]
+            },
+            "description": "Получить информацию об инстансе"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Instance Link",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances/xray-user-123/link",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances", "xray-user-123", "link"]
+            },
+            "description": "Получить ссылку для подключения (vless://...)"
+          },
+          "response": []
+        },
+        {
+          "name": "Restart Instance",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances/xray-user-123/restart",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances", "xray-user-123", "restart"]
+            },
+            "description": "Перезапустить инстанс"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Instance",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/instances/xray-user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "instances", "xray-user-123"]
+            },
+            "description": "Удалить инстанс"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Xray Stats",
+      "item": [
+        {
+          "name": "Get Traffic Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "stats"]
+            },
+            "description": "Получить статистику трафика"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Instance Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/xray/stats/xray-user-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["xray", "stats", "xray-user-123"]
+            },
+            "description": "Статистика по конкретному инстансу"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Node Management",
+      "item": [
+        {
+          "name": "Node Heartbeat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{nodeApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/node/heartbeat",
+              "host": ["{{baseUrl}}"],
+              "path": ["node", "heartbeat"]
+            },
+            "description": "Отправить heartbeat на backend"
+          },
+          "response": []
+        },
+        {
+          "name": "Sync with Backend",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{nodeApiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/node/sync",
+              "host": ["{{baseUrl}}"],
+              "path": ["node", "sync"]
+            },
+            "description": "Синхронизировать данные с backend"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
