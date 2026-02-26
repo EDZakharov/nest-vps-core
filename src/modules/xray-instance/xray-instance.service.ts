@@ -99,7 +99,7 @@ export class XrayInstanceService {
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
       
-      // Запускаем скрипт через docker run с доступом к хосту
+      // Запускаем скрипт через docker run --privileged для доступа к namespace хоста
       const result = await execAsync(
         'docker run --rm --privileged --pid=host -v /opt:/opt alpine /opt/vpn-core-reload.sh'
       );
