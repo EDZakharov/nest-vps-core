@@ -27,6 +27,11 @@ export class XrayInstanceController {
     return this.xrayInstanceService.removeUser(userId);
   }
 
+  @Post('restart-xray')
+  async restartXray() {
+    return this.xrayInstanceService.restartXray();
+  }
+
   @Get('stats/traffic')
   async getTrafficStats() {
     return this.xrayInstanceService.getTrafficStats();

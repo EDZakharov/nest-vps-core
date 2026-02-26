@@ -1,7 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 import { XrayConfigService } from './xray-config.service';
+
+const execAsync = promisify(exec);
 
 @Injectable()
 export class XrayInstanceService {
@@ -81,5 +85,19 @@ export class XrayInstanceService {
       },
       users: [],
     };
+  }
+
+  /**
+   * Перезапустить Xray
+   */
+  async restartXray() {
+    try {
+      await execAsync('systemctl restart xray');
+      this.logger.log('Xray restarted successfully');
+      return { success: true };
+    } catch (error: any) {
+      this.logger.error(`Failed to restart Xray: ${error.message}`);
+      throw error;
+    }
   }
 }
