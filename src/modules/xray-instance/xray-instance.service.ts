@@ -99,9 +99,9 @@ export class XrayInstanceService {
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
       
-      // Запускаем скрипт напрямую через nsenter в namespace хоста
+      // Запускаем скрипт через docker run с доступом к хосту
       const result = await execAsync(
-        'nsenter -t 1 -m -u -n -i /bin/bash /opt/vpn-core-reload.sh'
+        'docker run --rm --privileged --pid=host -v /opt:/opt alpine /opt/vpn-core-reload.sh'
       );
       
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
