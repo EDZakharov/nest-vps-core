@@ -26,6 +26,8 @@ services:
       - /app/node_modules
       # Mount Xray config (from host) - read-write access to update config
       - /usr/local/etc/xray/config.json:/usr/local/etc/xray/config.json
+      # Mount Docker socket to restart Xray on host
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - vpn-core-network
     healthcheck:

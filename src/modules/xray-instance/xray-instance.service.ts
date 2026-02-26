@@ -92,7 +92,8 @@ export class XrayInstanceService {
    */
   async restartXray() {
     try {
-      await execAsync('systemctl restart xray');
+      // Перезапускаем Xray через docker exec на хосте
+      await execAsync('docker exec vpn-core systemctl restart xray 2>/dev/null || systemctl restart xray');
       this.logger.log('Xray restarted successfully');
       return { success: true };
     } catch (error: any) {
