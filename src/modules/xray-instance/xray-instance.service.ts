@@ -1,11 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 
 import { XrayConfigService } from './xray-config.service';
-
-const execAsync = promisify(exec);
 
 @Injectable()
 export class XrayInstanceService {
@@ -23,10 +19,7 @@ export class XrayInstanceService {
     // 1. Добавляем в конфиг
     await this.xrayConfig.addUser(userId.toString(), uuid);
 
-    // 2. Перезапускаем Xray
-    await this.restartXray();
-
-    this.logger.log(`User ${userId} added and Xray restarted`);
+    this.logger.log(`User ${userId} added to Xray config`);
 
     return { success: true, userId, uuid };
   }
@@ -38,10 +31,7 @@ export class XrayInstanceService {
     // 1. Удаляем из конфига
     await this.xrayConfig.removeUser(userId.toString());
 
-    // 2. Перезапускаем Xray
-    await this.restartXray();
-
-    this.logger.log(`User ${userId} removed and Xray restarted`);
+    this.logger.log(`User ${userId} removed from Xray config`);
 
     return { success: true, userId };
   }
@@ -77,20 +67,6 @@ export class XrayInstanceService {
       uuid: user.id,
       flow: user.flow,
     }));
-  }
-
-  /**
-   * Перезапустить Xray
-   */
-  private async restartXray(): Promise<void> {
-    try {
-      // Используем docker exec для перезапуска Xray на хосте
-      await execAsync('docker exec vpn-core systemctl restart xray 2>/dev/null || systemctl restart xray');
-      this.logger.log('Xray restarted successfully');
-    } catch (error: any) {
-      this.logger.error(`Failed to restart Xray: ${error.message}`);
-      throw error;
-    }
   }
 
   /**
