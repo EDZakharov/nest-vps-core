@@ -95,9 +95,9 @@ export class XrayInstanceService {
    */
   async restartXray() {
     try {
-      // Перезапускаем Xray через systemctl на хосте
-      // Используем nsenter для выполнения команды в namespace хоста
-      await execAsync('nsenter -t 1 -m -u -n -i systemctl restart xray 2>/dev/null || systemctl restart xray 2>/dev/null || kill -HUP $(pgrep xray) 2>/dev/null || true');
+      // Используем docker для рестарта Xray на хосте
+      // Xray работает как systemd сервис на хосте, не в Docker
+      await execAsync('systemctl restart xray 2>/dev/null || service xray restart 2>/dev/null || pkill -HUP xray || true');
       this.logger.log('Xray restart signal sent');
       return { success: true };
     } catch (error: any) {

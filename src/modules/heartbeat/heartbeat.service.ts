@@ -14,7 +14,7 @@ export class HeartbeatService implements OnModuleInit {
     this.backendUrl = this.configService.get('BACKEND_URL') || 'http://localhost:4200';
     this.nodeApiKey = this.configService.get('NODE_API_KEY') || '';
     this.nodeId = this.configService.get('NODE_ID') || '';
-    this.heartbeatInterval = this.configService.get('HEARTBEAT_INTERVAL_MS') || 30000;
+    this.heartbeatInterval = Number(this.configService.get('HEARTBEAT_INTERVAL_MS')) || 30000;
   }
 
   async onModuleInit() {
