@@ -7,12 +7,14 @@ import morgan from 'morgan';
 
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './utils/all-exceptions.filter';
+import { AuditService } from './core/audit/audit.service';
+import { AuditInterceptor } from './core/audit/audit.interceptor';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app: INestApplication = await NestFactory.create(AppModule);
 
   // Trust proxy for correct IP logging
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  (app.getHttpAdapter().getInstance() as any).set('trust proxy', 1);
 
   const configService = app.get(ConfigService);
   const isDev = configService.get<string>('NODE_ENV') === 'development';
@@ -38,6 +40,10 @@ async function bootstrap() {
 
   // Exception filters
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Audit logging
+  const auditService = app.get(AuditService);
+  app.useGlobalInterceptors(new AuditInterceptor(auditService));
 
   // Compression
   app.use(compression());
