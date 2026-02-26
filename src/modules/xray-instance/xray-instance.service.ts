@@ -99,13 +99,10 @@ export class XrayInstanceService {
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
       
-      // Запускаем скрипт на хосте через docker:cli с доступом к systemd и файлам
+      // Запускаем скрипт через nsenter в namespace хоста
       const result = await execAsync(
-        'docker run --rm --privileged ' +
-        '-v /run/systemd/system:/run/systemd/system ' +
-        '-v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket ' +
-        '-v /opt:/opt ' +
-        'docker:cli /opt/vpn-core-reload.sh'
+        'docker run --rm --privileged --pid=host -v /opt:/opt alpine ' +
+        'nsenter -t 1 -m -u -n -i /bin/sh /opt/vpn-core-reload.sh'
       );
       
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
