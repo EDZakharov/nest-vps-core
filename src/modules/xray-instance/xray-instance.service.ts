@@ -84,7 +84,8 @@ export class XrayInstanceService {
    */
   private async restartXray(): Promise<void> {
     try {
-      await execAsync('systemctl restart xray');
+      // Используем docker exec для перезапуска Xray на хосте
+      await execAsync('docker exec vpn-core systemctl restart xray 2>/dev/null || systemctl restart xray');
       this.logger.log('Xray restarted successfully');
     } catch (error: any) {
       this.logger.error(`Failed to restart Xray: ${error.message}`);
