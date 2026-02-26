@@ -95,13 +95,19 @@ export class XrayInstanceService {
    */
   async restartXray() {
     try {
-      // Используем docker для рестарта Xray на хосте
-      // Xray работает как systemd сервис на хосте, не в Docker
-      await execAsync('systemctl restart xray 2>/dev/null || service xray restart 2>/dev/null || pkill -HUP xray || true');
-      this.logger.log('Xray restart signal sent');
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      
+      // Вызываем скрипт reload на хосте через docker run с host PID
+      const result = await execAsync(
+        'docker run --rm --pid=host alpine /opt/nest-vps-core/reload-xray.sh'
+      );
+      
+      this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
       return { success: true };
     } catch (error: any) {
-      this.logger.error(`Failed to restart Xray: ${error.message}`);
+      this.logger.error(`Failed to reload Xray: ${error.message}`);
       // Не выбрасываем ошибку - это не критично
       return { success: false, error: error.message };
     }
