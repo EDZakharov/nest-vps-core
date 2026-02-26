@@ -24,8 +24,8 @@ services:
       - ./nest-cli.json:/app/nest-cli.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
       - /app/node_modules
-      # Mount Xray config (from host)
-      - /etc/xray/config.json:/etc/xray/config.json:ro
+      # Mount Xray config (from host) - Xray uses /usr/local/etc/xray/config.json
+      - /usr/local/etc/xray/config.json:/usr/local/etc/xray/config.json:ro
     networks:
       - vpn-core-network
     healthcheck:
