@@ -101,14 +101,13 @@ export class XrayInstanceService {
       
       // Вызываем скрипт reload на хосте через docker run с host PID
       const result = await execAsync(
-        'docker run --rm --pid=host alpine /opt/nest-vps-core/reload-xray.sh'
+        'docker run --rm --pid=host alpine /opt/vpn-core-reload.sh'
       );
       
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
       return { success: true };
     } catch (error: any) {
       this.logger.error(`Failed to reload Xray: ${error.message}`);
-      // Не выбрасываем ошибку - это не критично
       return { success: false, error: error.message };
     }
   }
