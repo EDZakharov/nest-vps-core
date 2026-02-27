@@ -19,7 +19,13 @@ export class AuditInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap(() => {
         const responseTime = Date.now() - startTime;
-        
+
+        // Skip audit logging for health checks and heartbeats (already tracked separately)
+        const path = request.path as string;
+        if (path.includes('/health') || path.includes('/heartbeat')) {
+          return;
+        }
+
         const auditLog: AuditLogDto = {
           timestamp: new Date(),
           nodeId: '',
