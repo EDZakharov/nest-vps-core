@@ -8,6 +8,7 @@ import { HealthModule } from "./health/health.module";
 import { XrayInstanceModule } from "./modules/xray-instance/xray-instance.module";
 import { HeartbeatModule } from "./modules/heartbeat/heartbeat.module";
 import { SignatureGuard } from "./core/security/signature.guard";
+import { AuditModule } from "./core/audit/audit.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SignatureGuard } from "./core/security/signature.guard";
         limit: 500, // 500 запросов
       },
     ]),
+    AuditModule,
     HealthModule,
     XrayInstanceModule,
     HeartbeatModule,
