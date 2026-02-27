@@ -67,10 +67,12 @@ export class SignatureGuard implements CanActivate {
     }
 
     // Проверка подписи
+    // request.path содержит /api/xray/users, нам нужно убрать /api префикс
+    const pathForVerification = request.path?.replace(/^\/api/, "") || "/";
     const isValid = this.verifySignature(
       timestamp,
       request.method,
-      request.path,
+      pathForVerification,
       request.body as Record<string, unknown> | undefined,
       nonce,
       signature,
