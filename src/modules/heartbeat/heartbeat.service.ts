@@ -1,6 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { setInterval } from 'timers/promises';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { setInterval } from "timers/promises";
+
+// Disable SSL certificate verification for self-signed certificates
+// This is needed for VPS nodes with Let's Encrypt certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 @Injectable()
 export class HeartbeatService implements OnModuleInit {
@@ -11,49 +15,54 @@ export class HeartbeatService implements OnModuleInit {
   private readonly heartbeatInterval: number;
 
   constructor(private readonly configService: ConfigService) {
-    this.backendUrl = this.configService.get('BACKEND_URL') || 'http://localhost:4200';
-    this.nodeApiKey = this.configService.get('NODE_API_KEY') || '';
-    this.nodeId = this.configService.get('NODE_ID') || '';
-    this.heartbeatInterval = Number(this.configService.get('HEARTBEAT_INTERVAL_MS')) || 30000;
+    this.backendUrl =
+      this.configService.get("BACKEND_URL") || "http://localhost:4200";
+    this.nodeApiKey = this.configService.get("NODE_API_KEY") || "";
+    this.nodeId = this.configService.get("NODE_ID") || "";
+    this.heartbeatInterval =
+      Number(this.configService.get("HEARTBEAT_INTERVAL_MS")) || 30000;
   }
 
-  async onModuleInit() {
+  onModuleInit(): void {
     // Запускаем heartbeat после инициализации модуля
-    this.startHeartbeat();
+    void this.startHeartbeat();
   }
 
-  private async startHeartbeat() {
+  private async startHeartbeat(): Promise<void> {
     this.logger.log(`Starting heartbeat every ${this.heartbeatInterval}ms`);
 
-    for await (const _ of setInterval(this.heartbeatInterval)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for await (const _interval of setInterval(this.heartbeatInterval)) {
       try {
         await this.sendHeartbeat();
-      } catch (error: any) {
-        this.logger.error(`Heartbeat failed: ${error.message}`);
+      } catch (error: unknown) {
+        const err = error as Error;
+        this.logger.error(`Heartbeat failed: ${err.message}`);
       }
     }
   }
 
-  private async sendHeartbeat() {
+  private async sendHeartbeat(): Promise<void> {
     const url = `${this.backendUrl}/api/vps-nodes/${this.nodeId}/heartbeat`;
 
     this.logger.debug(`Sending heartbeat to ${url}`);
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.nodeApiKey}`,
+          Authorization: `Bearer ${this.nodeApiKey}`,
         },
       });
 
       if (response.ok) {
-        this.logger.debug('Heartbeat sent successfully');
+        this.logger.debug("Heartbeat sent successfully");
       } else {
         this.logger.warn(`Heartbeat failed with status: ${response.status}`);
       }
-    } catch (error: any) {
-      this.logger.error(`Heartbeat error: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Heartbeat error: ${err.message}`);
       throw error;
     }
   }
