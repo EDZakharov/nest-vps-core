@@ -6,9 +6,11 @@ import * as fs from 'fs/promises';
 export class XrayConfigService {
   private readonly logger = new Logger(XrayConfigService.name);
   private readonly configPath: string;
+  private readonly keysPath: string;
 
   constructor(private readonly configService: ConfigService) {
     this.configPath = this.configService.get('XRAY_CONFIG_PATH') || '/usr/local/etc/xray/config.json';
+    this.keysPath = '/usr/local/etc/xray/.keys';
     new Logger(XrayConfigService.name).log(`Xray config path: ${this.configPath}`);
   }
 
@@ -100,5 +102,47 @@ export class XrayConfigService {
   async getAllUsers(): Promise<any[]> {
     const config = await this.readConfig();
     return config.inbounds[0].settings.clients;
+  }
+
+  /**
+   * Получить REALITY ключи из файла .keys
+   */
+  async getRealityKeys(): Promise<{
+    public_key: string;
+    private_key: string;
+    short_ids: string[];
+    dest: string;
+    server_names: string[];
+  }> {
+    try {
+      const keysData = await fs.readFile(this.keysPath, 'utf-8');
+      const lines = keysData.split('\n');
+
+      const keys: Record<string, string> = {};
+      for (const line of lines) {
+        const [key, value] = line.split(': ').map((s) => s.trim());
+        if (key && value) {
+          keys[key] = value;
+        }
+      }
+
+      // Парсим server_names в массив
+      const serverNames = keys.server_names ? keys.server_names.split(',') : ['google.com'];
+
+      // Парсим shortIds из конфига (может быть несколько)
+      const shortIds = keys.shortsid ? [keys.shortsid, ''] : [''];
+
+      return {
+        public_key: keys.public_key || '',
+        private_key: keys.private_key || '',
+        short_ids: shortIds,
+        dest: keys.dest || 'google.com:443',
+        server_names: serverNames,
+      };
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Failed to read REALITY keys: ${err.message}`);
+      throw error;
+    }
   }
 }

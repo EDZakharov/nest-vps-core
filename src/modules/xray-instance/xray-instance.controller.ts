@@ -3,12 +3,16 @@ import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 import { AddUserDto } from './dto/add-user.dto';
+import { XrayConfigService } from './xray-config.service';
 import { XrayInstanceService } from './xray-instance.service';
 
 @Controller('xray/users')
 @UseGuards(ThrottlerGuard)
 export class XrayInstanceController {
-  constructor(private readonly xrayInstanceService: XrayInstanceService) {}
+  constructor(
+    private readonly xrayInstanceService: XrayInstanceService,
+    private readonly xrayConfig: XrayConfigService,
+  ) {}
 
   @Post()
   @Throttle({ short: { limit: 2, ttl: 1000 } })
@@ -44,6 +48,15 @@ export class XrayInstanceController {
   @Throttle({ medium: { limit: 15, ttl: 60000 } })
   async getTrafficStats() {
     return this.xrayInstanceService.getTrafficStats();
+  }
+
+  /**
+   * Получить REALITY ключи (public_key, short_ids, dest, server_names)
+   */
+  @SkipThrottle()
+  @Get('keys')
+  async getKeys() {
+    return this.xrayConfig.getRealityKeys();
   }
 
   @SkipThrottle()
