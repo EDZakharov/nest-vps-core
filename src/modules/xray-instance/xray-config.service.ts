@@ -2,6 +2,22 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 
+interface XrayClient {
+  email: string;
+  id: string;
+  flow: string;
+  level: number;
+  security?: string;
+}
+
+interface XrayConfig {
+  inbounds: Array<{
+    settings: {
+      clients: XrayClient[];
+    };
+  }>;
+}
+
 @Injectable()
 export class XrayConfigService {
   private readonly logger = new Logger(XrayConfigService.name);
@@ -17,12 +33,13 @@ export class XrayConfigService {
   /**
    * Прочитать конфиг Xray
    */
-  async readConfig(): Promise<any> {
+  async readConfig(): Promise<XrayConfig> {
     try {
       const configData = await fs.readFile(this.configPath, 'utf-8');
-      return JSON.parse(configData);
-    } catch (error: any) {
-      this.logger.error(`Failed to read Xray config: ${error.message}`);
+      return JSON.parse(configData) as XrayConfig;
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Failed to read Xray config: ${err.message}`);
       throw error;
     }
   }
@@ -30,12 +47,13 @@ export class XrayConfigService {
   /**
    * Записать конфиг Xray
    */
-  async writeConfig(config: any): Promise<void> {
+  async writeConfig(config: XrayConfig): Promise<void> {
     try {
       await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
       this.logger.log('Xray config updated');
-    } catch (error: any) {
-      this.logger.error(`Failed to write Xray config: ${error.message}`);
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Failed to write Xray config: ${err.message}`);
       throw error;
     }
   }
@@ -48,7 +66,7 @@ export class XrayConfigService {
 
     // Проверяем, существует ли уже пользователь
     const clients = config.inbounds[0].settings.clients;
-    const exists = clients.some((client: any) => client.id === uuid);
+    const exists = clients.some((client) => client.id === uuid);
 
     if (exists) {
       this.logger.warn(`User ${userId} (uuid: ${uuid}) already exists`);
@@ -75,7 +93,7 @@ export class XrayConfigService {
     const config = await this.readConfig();
 
     const clients = config.inbounds[0].settings.clients;
-    const filtered = clients.filter((client: any) => client.email !== `user-${userId}`);
+    const filtered = clients.filter((client) => client.email !== `user-${userId}`);
 
     if (filtered.length === clients.length) {
       this.logger.warn(`User ${userId} not found`);
@@ -93,14 +111,14 @@ export class XrayConfigService {
   async getUserUuid(userId: string): Promise<string | null> {
     const config = await this.readConfig();
     const clients = config.inbounds[0].settings.clients;
-    const client = clients.find((c: any) => c.email === `user-${userId}`);
-    return client?.id || null;
+    const client = clients.find((c) => c.email === `user-${userId}`);
+    return client?.id ?? null;
   }
 
   /**
    * Получить всех пользователей
    */
-  async getAllUsers(): Promise<any[]> {
+  async getAllUsers(): Promise<XrayClient[]> {
     const config = await this.readConfig();
     return config.inbounds[0].settings.clients;
   }

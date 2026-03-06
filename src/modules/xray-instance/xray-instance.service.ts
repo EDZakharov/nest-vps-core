@@ -79,7 +79,7 @@ export class XrayInstanceService {
    */
   async getAllUsers() {
     const users = await this.xrayConfig.getAllUsers();
-    return users.map((user: any) => ({
+    return users.map((user) => ({
       userId: user.email,
       uuid: user.id,
       flow: user.flow,
@@ -103,9 +103,10 @@ export class XrayInstanceService {
 
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
       return { success: true };
-    } catch (error: any) {
-      this.logger.error(`Failed to reload Xray: ${error.message}`);
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Failed to reload Xray: ${err.message}`);
+      return { success: false, error: err.message };
     }
   }
 }

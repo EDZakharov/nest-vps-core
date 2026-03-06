@@ -2,15 +2,6 @@ import { Public } from '../../core/decorators/public.decorator';
 import { Body, Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
 import { XrayInstanceService } from './xray-instance.service';
 
-import { IsString, IsOptional } from "class-validator";
-
-export class CreateUserDto {
-  @IsString()
-  userId: string;
-  @IsString()
-  uuid: string;
-}
-
 @Controller('xray')
 export class XrayInstanceController {
   private readonly logger = new Logger(XrayInstanceController.name);
@@ -22,7 +13,7 @@ export class XrayInstanceController {
    */
   @Public()
   @Post('users')
-  async addUser(@Body() body: any) {
+  async addUser(@Body() body: { userId: string | number; uuid: string }) {
     const userId = String(body.userId);
     const uuid = body.uuid;
     this.logger.log(`POST /api/xray/users: userId=${userId}, uuid=${uuid}`);
