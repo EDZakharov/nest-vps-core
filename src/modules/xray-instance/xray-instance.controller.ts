@@ -1,8 +1,13 @@
+import { Public } from '../../core/decorators/public.decorator';
 import { Body, Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
 import { XrayInstanceService } from './xray-instance.service';
 
+import { IsString } from "class-validator";
+
 export class CreateUserDto {
-  userId: number;
+  @IsString()
+  userId: string;
+  @IsString()
   uuid: string;
 }
 
@@ -15,6 +20,7 @@ export class XrayInstanceController {
   /**
    * Add user to Xray config
    */
+  @Public()
   @Post('users')
   async addUser(@Body() dto: CreateUserDto) {
     this.logger.log(`POST /api/xray/users: userId=${dto.userId}, uuid=${dto.uuid}`);
@@ -25,6 +31,7 @@ export class XrayInstanceController {
   /**
    * Remove user from Xray config
    */
+  @Public()
   @Delete('users/:userId')
   async removeUser(@Param('userId') userId: string) {
     this.logger.log(`DELETE /api/xray/users/${userId}`);
@@ -35,6 +42,7 @@ export class XrayInstanceController {
   /**
    * Generate link for user
    */
+  @Public()
   @Get('users/:userId/link')
   async generateLink(@Param('userId') userId: string) {
     this.logger.log(`GET /api/xray/users/${userId}/link`);
@@ -45,6 +53,7 @@ export class XrayInstanceController {
   /**
    * Get REALITY keys
    */
+  @Public()
   @Get('keys')
   async getKeys() {
     this.logger.log('GET /api/xray/keys');

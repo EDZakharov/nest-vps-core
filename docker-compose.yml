@@ -24,6 +24,7 @@ services:
       - ./nest-cli.json:/app/nest-cli.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
       - /app/node_modules
+      - /usr/local/etc/xray/.keys:/usr/local/etc/xray/.keys
       # Mount Xray config (from host) - read-write access to update config
       - /usr/local/etc/xray/config.json:/usr/local/etc/xray/config.json
       # Mount Docker socket to restart Xray on host
