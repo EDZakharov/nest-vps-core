@@ -1,6 +1,3 @@
-// Xray Stats API Protocol Buffer Definition
-// Based on Xray's internal stats service
-
 syntax = "proto3";
 
 package proxyman.stats;

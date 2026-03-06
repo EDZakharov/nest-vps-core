@@ -56,8 +56,9 @@ export class XrayStatsService implements OnModuleInit, OnModuleDestroy {
   private initGrpcClient(): void {
     try {
       // Загружаем proto файл Xray Stats API
+      // Путь от dist/ к proto/
       const packageDefinition = protoLoader.loadSync(
-        require.resolve("../../proto/xray-stats.proto"),
+        require.resolve("../../../proto/xray-stats.proto"),
         {
           keepCase: true,
           longs: String,
