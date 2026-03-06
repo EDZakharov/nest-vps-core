@@ -1,0 +1,54 @@
+// Xray Stats API Protocol Buffer Definition
+// Based on Xray's internal stats service
+
+syntax = "proto3";
+
+package proxyman.stats;
+
+// Stats service for querying traffic statistics
+service StatsService {
+  // Get a specific stat value
+  rpc GetStats(GetStatsRequest) returns (GetStatsResponse);
+  
+  // Get query stats (list of stats matching pattern)
+  rpc QueryStats(QueryStatsRequest) returns (QueryStatsResponse);
+}
+
+// Request for GetStats
+message GetStatsRequest {
+  // Name of the stat to retrieve (e.g., "user>>>email>>>traffic>>>uplink")
+  string name = 1;
+  
+  // Reset the stat after reading
+  bool reset = 2;
+}
+
+// Response for GetStats
+message GetStatsResponse {
+  // The stat object
+  Stat stat = 1;
+}
+
+// Request for QueryStats
+message QueryStatsRequest {
+  // Pattern to match stat names (e.g., "user>>>" for all user stats)
+  string pattern = 1;
+  
+  // Reset stats after reading
+  bool reset = 2;
+}
+
+// Response for QueryStats
+message QueryStatsResponse {
+  // List of matching stats
+  repeated Stat stat = 1;
+}
+
+// Individual stat object
+message Stat {
+  // Name of the stat (e.g., "user>>>user-123>>>traffic>>>uplink")
+  string name = 1;
+  
+  // Stat value (traffic in bytes)
+  int64 value = 2;
+}
