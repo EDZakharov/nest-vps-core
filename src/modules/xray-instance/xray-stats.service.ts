@@ -128,7 +128,8 @@ export class XrayStatsService implements OnModuleInit, OnModuleDestroy {
     const stats = await this.getUserTrafficFromXray();
 
     if (stats.length === 0) {
-      this.logger.debug("No traffic stats to send");
+      this.logger.warn("No traffic stats from gRPC - Xray API may not be configured");
+      this.logger.warn("To enable traffic stats, add API settings to Xray config");
       return;
     }
 

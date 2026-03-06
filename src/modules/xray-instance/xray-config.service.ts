@@ -48,23 +48,24 @@ export class XrayConfigService {
 
     // Проверяем, существует ли уже пользователь
     const clients = config.inbounds[0].settings.clients;
-    const exists = clients.some((client: any) => client.email === `user-${userId}`);
+    const exists = clients.some((client: any) => client.id === uuid);
 
     if (exists) {
-      this.logger.warn(`User ${userId} already exists`);
+      this.logger.warn(`User ${userId} (uuid: ${uuid}) already exists`);
       return;
     }
 
-    // Добавляем пользователя
+    // Добавляем пользователя с правильными настройками для REALITY
     clients.push({
       email: `user-${userId}`,
       id: uuid,
       flow: 'xtls-rprx-vision',
       level: 0,
+      security: 'auto',    // Важно для REALITY!
     });
 
     await this.writeConfig(config);
-    this.logger.log(`User ${userId} added to Xray config`);
+    this.logger.log(`User ${userId} added to Xray config with security: auto`);
   }
 
   /**

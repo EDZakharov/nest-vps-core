@@ -33,7 +33,10 @@ export class XrayInstanceService {
     // 1. Удаляем из конфига
     await this.xrayConfig.removeUser(userId);
 
-    this.logger.log(`User ${userId} removed from Xray config`);
+    // 2. Перезапускаем Xray
+    await this.restartXray();
+
+    this.logger.log(`User ${userId} removed and Xray restarted`);
 
     return { success: true, userId };
   }

@@ -2,7 +2,7 @@ import { Public } from '../../core/decorators/public.decorator';
 import { Body, Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
 import { XrayInstanceService } from './xray-instance.service';
 
-import { IsString } from "class-validator";
+import { IsString, IsOptional } from "class-validator";
 
 export class CreateUserDto {
   @IsString()
@@ -22,10 +22,12 @@ export class XrayInstanceController {
    */
   @Public()
   @Post('users')
-  async addUser(@Body() dto: CreateUserDto) {
-    this.logger.log(`POST /api/xray/users: userId=${dto.userId}, uuid=${dto.uuid}`);
-    await this.xrayInstanceService.addUser(dto.userId, dto.uuid);
-    return { success: true, userId: dto.userId, uuid: dto.uuid };
+  async addUser(@Body() body: any) {
+    const userId = String(body.userId);
+    const uuid = body.uuid;
+    this.logger.log(`POST /api/xray/users: userId=${userId}, uuid=${uuid}`);
+    await this.xrayInstanceService.addUser(userId, uuid);
+    return { success: true, userId, uuid };
   }
 
   /**
