@@ -43,6 +43,7 @@ services:
       - "443:443"
     volumes:
       - ./xray/config.json:/etc/xray/config.json:ro
+    command: ["run", "-config", "/etc/xray/config.json"]
     networks:
       - vpn-network
     cap_add:
