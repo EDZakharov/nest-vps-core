@@ -1,11 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
 import { XrayConfigService } from './xray-config.service';
-
-const execAsync = promisify(exec);
 
 @Injectable()
 export class XrayInstanceService {
@@ -19,9 +14,9 @@ export class XrayInstanceService {
   /**
    * Добавить пользователя
    */
-  async addUser(userId: number, uuid: string) {
+  async addUser(userId: string, uuid: string) {
     // 1. Добавляем в конфиг
-    await this.xrayConfig.addUser(userId.toString(), uuid);
+    await this.xrayConfig.addUser(userId, uuid);
 
     // 2. Перезапускаем Xray
     await this.restartXray();
@@ -34,9 +29,9 @@ export class XrayInstanceService {
   /**
    * Удалить пользователя
    */
-  async removeUser(userId: number) {
+  async removeUser(userId: string) {
     // 1. Удаляем из конфига
-    await this.xrayConfig.removeUser(userId.toString());
+    await this.xrayConfig.removeUser(userId);
 
     this.logger.log(`User ${userId} removed from Xray config`);
 
@@ -46,8 +41,8 @@ export class XrayInstanceService {
   /**
    * Сгенерировать VLESS ссылку
    */
-  async generateLink(userId: number): Promise<{ link: string }> {
-    const uuid = await this.xrayConfig.getUserUuid(userId.toString());
+  async generateLink(userId: string): Promise<{ link: string }> {
+    const uuid = await this.xrayConfig.getUserUuid(userId);
 
     if (!uuid) {
       throw new NotFoundException(`User ${userId} not found`);
@@ -56,12 +51,24 @@ export class XrayInstanceService {
     const domain = this.configService.get('DOMAIN') || 'localhost';
     const port = this.configService.get('XRAY_PORT') || 443;
 
-    // Генерируем VLESS ссылку
-    const link = `vless://${uuid}@${domain}:${port}?encryption=none&flow=xtls-rprx-vision&security=tls&sni=${domain}&fp=chrome&alpn=http/1.1&type=tcp#user-${userId}`;
+    // Генерируем VLESS REALITY ссылку
+    const keys = await this.xrayConfig.getRealityKeys();
+    const serverName = keys.server_names[0] || 'google.com';
+    const shortId = keys.short_ids[0] || '';
 
-    this.logger.log(`Generated link for user ${userId}`);
+    const link = `vless://${uuid}@${domain}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${serverName}&fp=chrome&pbk=${keys.public_key}&sid=${shortId}&spx=/&type=tcp&headerType=none#user-${userId}`;
+
+    this.logger.log(`Generated REALITY link for user ${userId}`);
 
     return { link };
+  }
+
+  /**
+   * Получить REALITY ключи
+   */
+  async getRealityKeys() {
+    this.logger.log('Getting REALITY keys');
+    return this.xrayConfig.getRealityKeys();
   }
 
   /**
@@ -74,20 +81,6 @@ export class XrayInstanceService {
       uuid: user.id,
       flow: user.flow,
     }));
-  }
-
-  /**
-   * Получить статистику трафика
-   */
-  async getTrafficStats() {
-    // TODO: Реализовать сбор статистики через iptables/nftables
-    return {
-      total: {
-        up: 0,
-        down: 0,
-      },
-      users: [],
-    };
   }
 
   /**

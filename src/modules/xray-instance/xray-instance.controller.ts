@@ -1,67 +1,53 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, UseGuards } from '@nestjs/common';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
-import { ThrottlerGuard } from '@nestjs/throttler';
-
-import { AddUserDto } from './dto/add-user.dto';
-import { XrayConfigService } from './xray-config.service';
+import { Body, Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
 import { XrayInstanceService } from './xray-instance.service';
 
-@Controller('xray/users')
-@UseGuards(ThrottlerGuard)
+export class CreateUserDto {
+  userId: number;
+  uuid: string;
+}
+
+@Controller('xray')
 export class XrayInstanceController {
-  constructor(
-    private readonly xrayInstanceService: XrayInstanceService,
-    private readonly xrayConfig: XrayConfigService,
-  ) {}
+  private readonly logger = new Logger(XrayInstanceController.name);
 
-  @Post()
-  @Throttle({ short: { limit: 2, ttl: 1000 } })
-  async addUser(@Body() dto: AddUserDto) {
-    return this.xrayInstanceService.addUser(dto.userId, dto.uuid);
-  }
+  constructor(private readonly xrayInstanceService: XrayInstanceService) {}
 
-  @Get()
-  @Throttle({ medium: { limit: 10, ttl: 60000 } })
-  async getAllUsers() {
-    return this.xrayInstanceService.getAllUsers();
-  }
-
-  @Get(':userId/link')
-  @Throttle({ medium: { limit: 20, ttl: 60000 } })
-  async generateLink(@Param('userId', ParseIntPipe) userId: number) {
-    return this.xrayInstanceService.generateLink(userId);
-  }
-
-  @Delete(':userId')
-  @Throttle({ short: { limit: 3, ttl: 1000 } })
-  async removeUser(@Param('userId', ParseIntPipe) userId: number) {
-    return this.xrayInstanceService.removeUser(userId);
-  }
-
-  @Post('restart-xray')
-  @Throttle({ short: { limit: 2, ttl: 1000 } })
-  async restartXray() {
-    return this.xrayInstanceService.restartXray();
-  }
-
-  @Get('stats/traffic')
-  @Throttle({ medium: { limit: 15, ttl: 60000 } })
-  async getTrafficStats() {
-    return this.xrayInstanceService.getTrafficStats();
+  /**
+   * Add user to Xray config
+   */
+  @Post('users')
+  async addUser(@Body() dto: CreateUserDto) {
+    this.logger.log(`POST /api/xray/users: userId=${dto.userId}, uuid=${dto.uuid}`);
+    await this.xrayInstanceService.addUser(dto.userId, dto.uuid);
+    return { success: true, userId: dto.userId, uuid: dto.uuid };
   }
 
   /**
-   * Получить REALITY ключи (public_key, short_ids, dest, server_names)
+   * Remove user from Xray config
    */
-  @SkipThrottle()
-  @Get('keys')
-  async getKeys() {
-    return this.xrayConfig.getRealityKeys();
+  @Delete('users/:userId')
+  async removeUser(@Param('userId') userId: string) {
+    this.logger.log(`DELETE /api/xray/users/${userId}`);
+    await this.xrayInstanceService.removeUser(userId);
+    return { success: true, userId };
   }
 
-  @SkipThrottle()
-  @Get('health')
-  health() {
-    return { status: 'ok' };
+  /**
+   * Generate link for user
+   */
+  @Get('users/:userId/link')
+  async generateLink(@Param('userId') userId: string) {
+    this.logger.log(`GET /api/xray/users/${userId}/link`);
+    const link = await this.xrayInstanceService.generateLink(userId);
+    return { success: true, userId, link };
+  }
+
+  /**
+   * Get REALITY keys
+   */
+  @Get('keys')
+  async getKeys() {
+    this.logger.log('GET /api/xray/keys');
+    return this.xrayInstanceService.getRealityKeys();
   }
 }
