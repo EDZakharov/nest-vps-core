@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs/promises';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import * as fs from "fs/promises";
 
 interface XrayClient {
   email: string;
@@ -25,9 +25,14 @@ export class XrayConfigService {
   private readonly keysPath: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.configPath = this.configService.get('XRAY_CONFIG_PATH') || '/usr/local/etc/xray/config.json';
-    this.keysPath = '/usr/local/etc/xray/.keys';
-    new Logger(XrayConfigService.name).log(`Xray config path: ${this.configPath}`);
+    this.configPath =
+      this.configService.get("XRAY_CONFIG_PATH") || "/opt/xray/config.json";
+    this.keysPath =
+      this.configService.get("XRAY_KEYS_PATH") || "/opt/xray/.keys";
+    new Logger(XrayConfigService.name).log(
+      `Xray config path: ${this.configPath}`,
+    );
+    new Logger(XrayConfigService.name).log(`Xray keys path: ${this.keysPath}`);
   }
 
   /**
@@ -35,7 +40,7 @@ export class XrayConfigService {
    */
   async readConfig(): Promise<XrayConfig> {
     try {
-      const configData = await fs.readFile(this.configPath, 'utf-8');
+      const configData = await fs.readFile(this.configPath, "utf-8");
       return JSON.parse(configData) as XrayConfig;
     } catch (error: unknown) {
       const err = error as Error;
@@ -49,8 +54,12 @@ export class XrayConfigService {
    */
   async writeConfig(config: XrayConfig): Promise<void> {
     try {
-      await fs.writeFile(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
-      this.logger.log('Xray config updated');
+      await fs.writeFile(
+        this.configPath,
+        JSON.stringify(config, null, 2),
+        "utf-8",
+      );
+      this.logger.log("Xray config updated");
     } catch (error: unknown) {
       const err = error as Error;
       this.logger.error(`Failed to write Xray config: ${err.message}`);
@@ -77,9 +86,9 @@ export class XrayConfigService {
     clients.push({
       email: `user-${userId}`,
       id: uuid,
-      flow: 'xtls-rprx-vision',
+      flow: "xtls-rprx-vision",
       level: 0,
-      security: 'auto',    // Важно для REALITY!
+      security: "auto", // Важно для REALITY!
     });
 
     await this.writeConfig(config);
@@ -93,7 +102,9 @@ export class XrayConfigService {
     const config = await this.readConfig();
 
     const clients = config.inbounds[0].settings.clients;
-    const filtered = clients.filter((client) => client.email !== `user-${userId}`);
+    const filtered = clients.filter(
+      (client) => client.email !== `user-${userId}`,
+    );
 
     if (filtered.length === clients.length) {
       this.logger.warn(`User ${userId} not found`);
@@ -134,28 +145,30 @@ export class XrayConfigService {
     server_names: string[];
   }> {
     try {
-      const keysData = await fs.readFile(this.keysPath, 'utf-8');
-      const lines = keysData.split('\n');
+      const keysData = await fs.readFile(this.keysPath, "utf-8");
+      const lines = keysData.split("\n");
 
       const keys: Record<string, string> = {};
       for (const line of lines) {
-        const [key, value] = line.split(': ').map((s) => s.trim());
+        const [key, value] = line.split(": ").map((s) => s.trim());
         if (key && value) {
           keys[key] = value;
         }
       }
 
       // Парсим server_names в массив
-      const serverNames = keys.server_names ? keys.server_names.split(',') : ['google.com'];
+      const serverNames = keys.server_names
+        ? keys.server_names.split(",")
+        : ["google.com"];
 
       // Парсим shortIds из конфига (может быть несколько)
-      const shortIds = keys.shortsid ? [keys.shortsid, ''] : [''];
+      const shortIds = keys.shortsid ? [keys.shortsid, ""] : [""];
 
       return {
-        public_key: keys.public_key || '',
-        private_key: keys.private_key || '',
+        public_key: keys.public_key || "",
+        private_key: keys.private_key || "",
         short_ids: shortIds,
-        dest: keys.dest || 'google.com:443',
+        dest: keys.dest || "google.com:443",
         server_names: serverNames,
       };
     } catch (error: unknown) {
