@@ -11,23 +11,16 @@ services:
   vpn-core:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.prod
     container_name: vpn-core
     restart: unless-stopped
     env_file:
       - .env
     ports:
-      - "8081:8080"  # ← Changed from 8080 to 8081 to avoid conflict with Nginx fallback
+      - "8081:8080"
     volumes:
-      # Mount source code for development
-      - ./src:/app/src
-      - ./nest-cli.json:/app/nest-cli.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
-      - /app/node_modules
       - /usr/local/etc/xray/.keys:/usr/local/etc/xray/.keys
-      # Mount Xray config (from host) - read-write access to update config
       - /usr/local/etc/xray/config.json:/usr/local/etc/xray/config.json
-      # Mount Docker socket to restart Xray on host
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - vpn-core-network
