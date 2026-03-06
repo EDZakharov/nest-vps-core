@@ -1,73 +1,39 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger } from '@nestjs/common';
 import { XrayConfigService } from './xray-config.service';
+
+interface XrayConfig {
+  log?: { loglevel?: string };
+  dns?: any;
+  routing?: any;
+  inbounds?: any[];
+  outbounds?: any[];
+}
 
 @Injectable()
 export class XrayInstanceService {
   private readonly logger = new Logger(XrayInstanceService.name);
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly xrayConfig: XrayConfigService,
-  ) {}
+  constructor(private readonly xrayConfig: XrayConfigService) {}
 
   /**
-   * Добавить пользователя
+   * Update full Xray config and restart Xray
+   * Called by backend when config changes (user added/removed)
    */
-  async addUser(userId: string, uuid: string) {
-    // 1. Добавляем в конфиг
-    await this.xrayConfig.addUser(userId, uuid);
-
-    // 2. Перезапускаем Xray
+  async updateConfig(config: XrayConfig) {
+    this.logger.log('Updating Xray configuration...');
+    
+    // 1. Write new config to file
+    await this.xrayConfig.writeConfig(config);
+    
+    // 2. Restart Xray to apply changes
     await this.restartXray();
-
-    this.logger.log(`User ${userId} added and Xray restarted`);
-
-    return { success: true, userId, uuid };
+    
+    this.logger.log('Xray configuration updated and restarted');
+    return { success: true };
   }
 
   /**
-   * Удалить пользователя
-   */
-  async removeUser(userId: string) {
-    // 1. Удаляем из конфига
-    await this.xrayConfig.removeUser(userId);
-
-    // 2. Перезапускаем Xray
-    await this.restartXray();
-
-    this.logger.log(`User ${userId} removed and Xray restarted`);
-
-    return { success: true, userId };
-  }
-
-  /**
-   * Сгенерировать VLESS ссылку
-   */
-  async generateLink(userId: string): Promise<{ link: string }> {
-    const uuid = await this.xrayConfig.getUserUuid(userId);
-
-    if (!uuid) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
-
-    const domain = this.configService.get('DOMAIN') || 'localhost';
-    const port = this.configService.get('XRAY_PORT') || 443;
-
-    // Генерируем VLESS REALITY ссылку
-    const keys = await this.xrayConfig.getRealityKeys();
-    const serverName = keys.server_names[0] || 'google.com';
-    const shortId = keys.short_ids[0] || '';
-
-    const link = `vless://${uuid}@${domain}:${port}?encryption=none&flow=xtls-rprx-vision&security=reality&sni=${serverName}&fp=chrome&pbk=${keys.public_key}&sid=${shortId}&spx=/&type=tcp&headerType=none#user-${userId}`;
-
-    this.logger.log(`Generated REALITY link for user ${userId}`);
-
-    return { link };
-  }
-
-  /**
-   * Получить REALITY ключи
+   * Get current REALITY keys (for debugging/verification)
    */
   async getRealityKeys() {
     this.logger.log('Getting REALITY keys');
@@ -75,19 +41,7 @@ export class XrayInstanceService {
   }
 
   /**
-   * Получить всех пользователей
-   */
-  async getAllUsers() {
-    const users = await this.xrayConfig.getAllUsers();
-    return users.map((user) => ({
-      userId: user.email,
-      uuid: user.id,
-      flow: user.flow,
-    }));
-  }
-
-  /**
-   * Перезапустить Xray
+   * Restart Xray service
    */
   async restartXray() {
     try {
@@ -95,7 +49,7 @@ export class XrayInstanceService {
       const { promisify } = await import('util');
       const execAsync = promisify(exec);
 
-      // Запускаем скрипт через nsenter в namespace хоста
+      // Run reload script via nsenter in host namespace
       const result = await execAsync(
         'docker run --rm --privileged --pid=host -v /opt:/opt alpine ' +
         'nsenter -t 1 -m -u -n -i /bin/sh /opt/nest-vps-core/reload-xray.sh'

@@ -1,6 +1,14 @@
 import { Public } from '../../core/decorators/public.decorator';
-import { Body, Controller, Delete, Get, Logger, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
 import { XrayInstanceService } from './xray-instance.service';
+
+interface XrayConfig {
+  log?: { loglevel?: string };
+  dns?: any;
+  routing?: any;
+  inbounds?: any[];
+  outbounds?: any[];
+}
 
 @Controller('xray')
 export class XrayInstanceController {
@@ -9,47 +17,33 @@ export class XrayInstanceController {
   constructor(private readonly xrayInstanceService: XrayInstanceService) {}
 
   /**
-   * Add user to Xray config
+   * Update full Xray config and restart Xray
+   * Accepts complete Xray configuration JSON
    */
   @Public()
-  @Post('users')
-  async addUser(@Body() body: { userId: string | number; uuid: string }) {
-    const userId = String(body.userId);
-    const uuid = body.uuid;
-    this.logger.log(`POST /api/xray/users: userId=${userId}, uuid=${uuid}`);
-    await this.xrayInstanceService.addUser(userId, uuid);
-    return { success: true, userId, uuid };
+  @Post('config')
+  async updateConfig(@Body() config: XrayConfig) {
+    this.logger.log('POST /api/xray/config: Received new configuration');
+    await this.xrayInstanceService.updateConfig(config);
+    return { success: true };
   }
 
   /**
-   * Remove user from Xray config
-   */
-  @Public()
-  @Delete('users/:userId')
-  async removeUser(@Param('userId') userId: string) {
-    this.logger.log(`DELETE /api/xray/users/${userId}`);
-    await this.xrayInstanceService.removeUser(userId);
-    return { success: true, userId };
-  }
-
-  /**
-   * Generate link for user
-   */
-  @Public()
-  @Get('users/:userId/link')
-  async generateLink(@Param('userId') userId: string) {
-    this.logger.log(`GET /api/xray/users/${userId}/link`);
-    const link = await this.xrayInstanceService.generateLink(userId);
-    return { success: true, userId, link };
-  }
-
-  /**
-   * Get REALITY keys
+   * Get current REALITY keys (for debugging/verification)
    */
   @Public()
   @Get('keys')
   async getKeys() {
     this.logger.log('GET /api/xray/keys');
     return this.xrayInstanceService.getRealityKeys();
+  }
+
+  /**
+   * Health check endpoint
+   */
+  @Public()
+  @Get('health')
+  async health() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
   }
 }
