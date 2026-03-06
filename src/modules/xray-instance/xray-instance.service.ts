@@ -1,11 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { XrayConfigService } from './xray-config.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { XrayConfigService } from "./xray-config.service";
+
+interface XrayClient {
+  email: string;
+  id: string;
+  flow: string;
+  level: number;
+  security?: string;
+}
 
 interface XrayConfig {
   log?: { loglevel?: string };
   dns?: any;
   routing?: any;
-  inbounds?: any[];
+  inbounds?: Array<{
+    settings: {
+      clients: XrayClient[];
+    };
+  }>;
   outbounds?: any[];
 }
 
@@ -20,15 +32,15 @@ export class XrayInstanceService {
    * Called by backend when config changes (user added/removed)
    */
   async updateConfig(config: XrayConfig) {
-    this.logger.log('Updating Xray configuration...');
-    
+    this.logger.log("Updating Xray configuration...");
+
     // 1. Write new config to file
-    await this.xrayConfig.writeConfig(config);
-    
+    await this.xrayConfig.writeConfig(config as any);
+
     // 2. Restart Xray to apply changes
     await this.restartXray();
-    
-    this.logger.log('Xray configuration updated and restarted');
+
+    this.logger.log("Xray configuration updated and restarted");
     return { success: true };
   }
 
@@ -36,7 +48,7 @@ export class XrayInstanceService {
    * Get current REALITY keys (for debugging/verification)
    */
   async getRealityKeys() {
-    this.logger.log('Getting REALITY keys');
+    this.logger.log("Getting REALITY keys");
     return this.xrayConfig.getRealityKeys();
   }
 
@@ -45,14 +57,14 @@ export class XrayInstanceService {
    */
   async restartXray() {
     try {
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
+      const { exec } = await import("child_process");
+      const { promisify } = await import("util");
       const execAsync = promisify(exec);
 
       // Run reload script via nsenter in host namespace
       const result = await execAsync(
-        'docker run --rm --privileged --pid=host -v /opt:/opt alpine ' +
-        'nsenter -t 1 -m -u -n -i /bin/sh /opt/nest-vps-core/reload-xray.sh'
+        "docker run --rm --privileged --pid=host -v /opt:/opt alpine " +
+          "nsenter -t 1 -m -u -n -i /bin/sh /opt/nest-vps-core/reload-xray.sh",
       );
 
       this.logger.log(`Xray reload output: ${result.stdout.trim()}`);
