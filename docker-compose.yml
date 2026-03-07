@@ -86,6 +86,7 @@ services:
       - "8080:8080"
     volumes:
       - ./xray:/etc/xray:rw
+      - ../xray-keys:/opt/xray:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - vpn-network
