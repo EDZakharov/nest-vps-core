@@ -6,7 +6,6 @@ import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { HealthModule } from "./health/health.module";
 import { XrayInstanceModule } from "./modules/xray-instance/xray-instance.module";
-import { HeartbeatModule } from "./modules/heartbeat/heartbeat.module";
 import { SignatureGuard } from "./core/security/signature.guard";
 import { AuditModule } from "./core/audit/audit.module";
 
@@ -37,7 +36,6 @@ import { AuditModule } from "./core/audit/audit.module";
     AuditModule,
     HealthModule,
     XrayInstanceModule,
-    HeartbeatModule,
   ],
   controllers: [AppController],
   providers: [
