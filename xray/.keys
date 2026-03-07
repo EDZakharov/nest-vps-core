@@ -1,0 +1,5 @@
+private_key: oNbPT-Xb6UvydEYiCYwM4rJwhm0DUpskm0holIxLa2E
+public_key: jFufg0bGyMPVuDE23MGDLw-c_MlCc1aIZmgumMinIHc
+shortsid: abc123
+dest: google.com:443
+server_names: google.com,www.google.com

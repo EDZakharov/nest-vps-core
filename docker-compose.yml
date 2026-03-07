@@ -82,10 +82,13 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      - XRAY_CONFIG_PATH=/etc/xray/config.json
+      - XRAY_KEYS_PATH=/opt/xray/.keys
     ports:
       - "8080:8080"
     volumes:
-      - ./xray:/opt/xray:rw
+      - ./xray:/etc/xray:rw
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - vpn-network

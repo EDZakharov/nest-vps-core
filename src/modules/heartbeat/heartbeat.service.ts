@@ -57,13 +57,16 @@ export class HeartbeatService implements OnModuleInit {
 
       if (response.ok) {
         this.logger.debug("Heartbeat sent successfully");
+      } else if (response.status === 404) {
+        // Node not registered yet (deploy job not completed)
+        this.logger.debug("Node not registered yet, will retry later");
       } else {
         this.logger.warn(`Heartbeat failed with status: ${response.status}`);
       }
     } catch (error: unknown) {
       const err = error as Error;
-      this.logger.error(`Heartbeat error: ${err.message}`);
-      throw error;
+      // Don't throw - continue retrying on next interval
+      this.logger.warn(`Heartbeat error: ${err.message}`);
     }
   }
 }
