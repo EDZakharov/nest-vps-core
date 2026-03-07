@@ -144,6 +144,14 @@ export class XrayConfigService {
     dest: string;
     server_names: string[];
   }> {
+    // Если файл не существует - генерируем ключи
+    try {
+      await fs.access(this.keysPath);
+    } catch {
+      this.logger.log("REALITY keys file not found, generating...");
+      await this.generateRealityKeys();
+    }
+
     try {
       const keysData = await fs.readFile(this.keysPath, "utf-8");
       const lines = keysData.split("\n");
@@ -174,6 +182,52 @@ export class XrayConfigService {
     } catch (error: unknown) {
       const err = error as Error;
       this.logger.error(`Failed to read REALITY keys: ${err.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Сгенерировать REALITY ключи через xray x25519
+   */
+  private async generateRealityKeys(): Promise<void> {
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+
+    try {
+      const { stdout } = await execAsync(
+        "docker run --rm --entrypoint xray ghcr.io/xtls/xray-core:latest x25519 2>/dev/null",
+      );
+
+      const lines = stdout.trim().split("\n");
+      const keys: Record<string, string> = {};
+
+      for (const line of lines) {
+        const [key, value] = line.split(":").map((s) => s.trim());
+        if (key && value) {
+          const cleanKey = key
+            .replace("PrivateKey", "private_key")
+            .replace("PublicKey", "public_key");
+          keys[cleanKey] = value;
+        }
+      }
+
+      // Добавляем shortid и dest
+      const crypto = await import("crypto");
+      keys.shortsid = crypto.randomBytes(3).toString("hex");
+      keys.dest = "google.com:443";
+      keys.server_names = "google.com,www.google.com";
+
+      // Записываем в файл
+      const content = Object.entries(keys)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\n");
+
+      await fs.writeFile(this.keysPath, content, "utf-8");
+      this.logger.log("REALITY keys generated successfully");
+    } catch (error: unknown) {
+      const err = error as Error;
+      this.logger.error(`Failed to generate REALITY keys: ${err.message}`);
       throw error;
     }
   }
